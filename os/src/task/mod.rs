@@ -17,6 +17,7 @@ mod task;
 use crate::config::MAX_APP_NUM;
 use crate::loader::{get_num_app, init_app_cx};
 use crate::sync::UPSafeCell;
+use crate::timer::{get_time, get_time_ms};
 use lazy_static::*;
 use switch::__switch;
 pub use task::{TaskControlBlock, TaskStatus};
@@ -135,6 +136,18 @@ impl TaskManager {
             panic!("All applications completed!");
         }
     }
+
+
+    fn get_current_task_info(&self) -> (TaskStatus,[u32;MAX_SYSCALL_NUM],usize) {
+        let inner = self.inner.exclusive_access();
+        let current = inner.current_task;
+        let tcb = inner.tasks[current];
+        let time = get_time_ms();
+        let mut syscall_times_cp: [u32;MAX_SYSCALL_NUM] = [0;MAX_SYSCALL_NUM];
+        let len = tcb.syscall_times.len();
+        
+
+    }
 }
 
 /// Run the first task in task list.
@@ -168,4 +181,9 @@ pub fn suspend_current_and_run_next() {
 pub fn exit_current_and_run_next() {
     mark_current_exited();
     run_next_task();
+}
+
+
+pub fn get_current_task_info() -> (TaskStatus,[u32;MAX_SYSCALL_NUM],usize){
+
 }
